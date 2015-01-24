@@ -89,8 +89,8 @@ The following are the definitions of shapes:
 > sides (Ellipse r1 r2)     = 42
 > sides (RtTriangle s1 s2)  = 3
 > sides (Polygon pts)       =
->        if length(pts) == 0 then 0
->        else length pts
+>   | (length xs) <= 2  = 0
+>   | otherwise         = length xs
 
   which returns the number of sides a given shape has.
   For the purposes of this exercise, an ellipse has 42 sides,
@@ -99,10 +99,10 @@ The following are the definitions of shapes:
 3. Define a function
 
 > bigger :: Shape -> Float -> Shape
-> bigger (Rectangle s1 s2) e  = Rectangle (s1 * e) (s2 * e)
-> bigger (Ellipse r1 r2) e    = Ellipse (r1 * e) (r2 * e)
-> bigger (RtTriangle s1 s2) e = RtTriangle (s1 * e) (s2 * e)
-> bigger (Polygon pts) e      = Polygon [(x * e, y * e) | (x, y) <- pts]
+> bigger (Rectangle s1 s2) e = Rectangle (s1 * (sqrt e)) (s2 * (sqrt e))
+> bigger (Ellipse r1 r2) e = Ellipse (r1 * (sqrt e)) (r2 * (sqrt e))
+> bigger (RtTriangle s1 s2) e = RtTriangle (s1 * (sqrt e)) (s2 * (sqrt e))
+> bigger (Polygon xs) e = Polygon (map (\(a, b) -> (a * (sqrt e), b * (sqrt e))) xs)
 
 
   that takes a shape `s` and expansion factor `e` and returns
@@ -124,10 +124,10 @@ The following are the definitions of shapes:
    Write a function
    
 > hanoi :: Int -> String -> String -> String -> IO ()
-> hanoi 1 a b c         = putStr("move disc from " ++ a ++ " to " ++ b ++ "\n")
+> hanoi 1 a b c         = putStrLn("move disc from " ++ a ++ " to " ++ b)
 > hanoi n a b c         = 
 >          do hanoi (n - 1) a c b
->             putStr("move disc from " ++ a ++ " to " ++ b ++ "\n")
+>             putStrLn("move disc from " ++ a ++ " to " ++ b)
 >             hanoi (n - 1) c b a
 
 
