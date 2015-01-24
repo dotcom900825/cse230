@@ -125,9 +125,9 @@ The following are the definitions of shapes:
 > hanoi :: Int -> String -> String -> String -> IO ()
 > hanoi 1 a b c         = putStrLn("move disc from " ++ a ++ " to " ++ b)
 > hanoi n a b c         = 
->                       do hanoi (n - 1) a c b
->                          putStrLn("move disc from " ++ a ++ " to " ++ b)
->                          hanoi (n - 1) c b a
+>          do hanoi (n - 1) a c b
+>             putStrLn("move disc from " ++ a ++ " to " ++ b)
+>             hanoi (n - 1) c b a
 
   that, given the number of discs $n$ and peg names $a$, $b$, and $c$,
   where a is the starting peg,
@@ -145,6 +145,31 @@ move disc from c to b
 Part 2: Drawing Fractals
 ------------------------
 
+> fillTri :: Window -> Int -> Int -> Int -> IO ()
+> fillTri w x y size
+>   = drawInWindow w (withColor Blue
+>       (polygon [(x,y),(x+size,y),(x,y-size),(x,y)]))
+
+> minSize :: Int
+> minSize = 8
+>
+
+> sierpinskiTri :: Window -> Int -> Int -> Int -> IO ()
+> sierpinskiTri w x y size
+>   = if size <= minSize
+>     then fillTri w x y size
+>     else let size2 = size `div` 2
+>       in do sierpinskiTri w  x  y        size2
+>             sierpinskiTri w  x (y-size2) size2
+>             sierpinskiTri w (x+size2)  y size2
+
+> xcf 
+>   = runGraphics (
+>     do w <- openWindow "Sirpinski's Triangle" (400,400)
+>        sierpinskiTri w 50 300 256
+>        closeWindow w
+>     )
+
 1. The Sierpinski Carpet is a recursive figure with a structure similar to
    the Sierpinski Triangle discussed in Chapter 3:
 
@@ -154,7 +179,34 @@ Write a function `sierpinskiCarpet` that displays this figure on the
 screen:
 
 > sierpinskiCarpet :: IO ()
-> sierpinskiCarpet = error "Define me!"
+> sierpinskiCarpet = runGraphics (
+>                       do w <- openWindow "Sierpinski's Rec" (400,400)
+>                          sierpinskiRec w 0 0 243
+>                          closeWindow w)
+
+Do the recursive rectangle:
+
+> sierpinskiRec :: Window -> Int -> Int -> Int -> IO ()
+> sierpinskiRec w x y size = 
+>       if size <= 1
+>       then drawRectangle x y size w
+>       else let size2 = size `div` 3
+>         in do sierpinskiRec w x y size2
+>               sierpinskiRec w (x + size2) y size2
+>               sierpinskiRec w (x + size2 * 2) y size2
+
+>               sierpinskiRec w x (y + size2) size2
+>               sierpinskiRec w (x + size2 * 2) (y + size2) size2
+
+>               sierpinskiRec w x (y + size2 * 2) size2
+>               sierpinskiRec w (x+size2) (y + size2 * 2) size2               
+>               sierpinskiRec w (x + size2 * 2) ( y + size2 * 2) size2
+
+Drawing the rectangle: 
+
+> drawRectangle :: Int -> Int -> Int -> Window -> IO ()
+> drawRectangle x y size w = 
+>     drawInWindow w (withColor White (polygon [(x, y), (x + size,y), (x + size, y + size), (x , y + size)]))
 
 Note that you either need to run your program in `SOE/src` or add this
 path to GHC's search path via `-i/path/to/SOE/src/`.
