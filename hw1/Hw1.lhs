@@ -125,9 +125,9 @@ The following are the definitions of shapes:
 > hanoi :: Int -> String -> String -> String -> IO ()
 > hanoi 1 a b c         = putStrLn("move disc from " ++ a ++ " to " ++ b)
 > hanoi n a b c         = 
->          do hanoi (n - 1) a c b
->             putStrLn("move disc from " ++ a ++ " to " ++ b)
->             hanoi (n - 1) c b a
+>                       do hanoi (n - 1) a c b
+>                          putStrLn("move disc from " ++ a ++ " to " ++ b)
+>                          hanoi (n - 1) c b a
 
   that, given the number of discs $n$ and peg names $a$, $b$, and $c$,
   where a is the starting peg,
