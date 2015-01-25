@@ -88,9 +88,9 @@ The following are the definitions of shapes:
 > sides (Rectangle s1 s2)   = 4
 > sides (Ellipse r1 r2)     = 42
 > sides (RtTriangle s1 s2)  = 3
-> sides (Polygon pts)       =
->   | (length xs) <= 2  = 0
->   | otherwise         = length xs
+> sides (Polygon pts)       
+>      | (length pts) <= 2  = 0
+>      | otherwise          = length pts
 
   which returns the number of sides a given shape has.
   For the purposes of this exercise, an ellipse has 42 sides,
