@@ -437,8 +437,33 @@ representing a play to another XML structure that, when printed,
 yields the HTML speciﬁed above (but with no whitespace except what's
 in the textual data in the original XML).
 
+> treeFold :: (a -> b -> c -> b) -> b -> [a] -> c -> b
+> treeFold fn arr [] _ = arr
+> treeFold fn arr (x:xs) n = fn x (treeFold fn arr xs n) n
+
+> treeMap :: (a -> b -> [a]) -> [a] -> b -> [[a]]
+> treeMap fn [] _ = []
+> treeMap fn xmlList n = treeFold (\listTail arr n -> (fn listTail n):arr ) [] xmlList n 
+
+> flattenTree :: [SimpleXML] -> Integer -> [SimpleXML]
+> flattenTree [] _ = []
+> flattenTree body n = concat(treeMap convert body (n + 1))
+
+> breakLineElement = [Element "br" []]
+
+> convert :: SimpleXML -> Integer -> [SimpleXML]
+> convert (Element "PLAY" body) n = [Element "html" [Element "body" (flattenTree body n)] ]
+> convert (Element "TITLE" body) n    = [Element ("h" ++ show(n)) (flattenTree body n)]
+> convert (Element "PERSONAE" body) n = (Element "h2" [PCDATA "Dramatis Personae"]):(flattenTree body n)
+> convert (Element "PERSONA" body) n  = (head (flattenTree body n)):breakLineElement
+> convert (Element "LINE" body) n     = (head (flattenTree body n)):breakLineElement
+> convert (Element "SPEAKER" body) n  = (Element "b" (flattenTree body n)):breakLineElement
+> convert (Element tag body) n        = flattenTree body n
+> convert (PCDATA a) _                = [PCDATA a]
+
+
 > formatPlay :: SimpleXML -> SimpleXML
-> formatPlay xml = PCDATA "WRITE ME!"
+> formatPlay xml = head (convert xml 0)
 
 The main action that we've provided below will use your function to
 generate a ﬁle `dream.html` from the sample play. The contents of this
