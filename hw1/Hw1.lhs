@@ -145,31 +145,6 @@ move disc from c to b
 Part 2: Drawing Fractals
 ------------------------
 
-> fillTri :: Window -> Int -> Int -> Int -> IO ()
-> fillTri w x y size
->   = drawInWindow w (withColor Blue
->       (polygon [(x,y),(x+size,y),(x,y-size),(x,y)]))
-
-> minSize :: Int
-> minSize = 8
->
-
-> sierpinskiTri :: Window -> Int -> Int -> Int -> IO ()
-> sierpinskiTri w x y size
->   = if size <= minSize
->     then fillTri w x y size
->     else let size2 = size `div` 2
->       in do sierpinskiTri w  x  y        size2
->             sierpinskiTri w  x (y-size2) size2
->             sierpinskiTri w (x+size2)  y size2
-
-> xcf 
->   = runGraphics (
->     do w <- openWindow "Sirpinski's Triangle" (400,400)
->        sierpinskiTri w 50 300 256
->        closeWindow w
->     )
-
 1. The Sierpinski Carpet is a recursive figure with a structure similar to
    the Sierpinski Triangle discussed in Chapter 3:
 
@@ -180,8 +155,9 @@ screen:
 
 > sierpinskiCarpet :: IO ()
 > sierpinskiCarpet = runGraphics (
->                       do w <- openWindow "Sierpinski's Rec" (400,400)
+>                       do w <- openWindow "Sierpinski's Rec" (243, 243)
 >                          sierpinskiRec w 0 0 243
+>                          k <- getKeyChar w
 >                          closeWindow w)
 
 Do the recursive rectangle:
@@ -217,8 +193,25 @@ Also, the organization of SOE has changed a bit, so that now you use
    own design.  Be creative!  The only constraint is that it shows some
    pattern of recursive self-similarity.
 
+> drawTri :: Window -> Int -> Int -> Int -> IO()
+> drawTri w x y size = drawInWindow w (withColor White (polygon [(x, y), (x + size, y), (x, y + size)]))
+
+> drawFractal w x y size = 
+>   if size <= 2
+>   then drawTri w x y size
+>   else let size2 = size `div` 2
+>     in do drawFractal w x y size2
+>           drawFractal w (x + size2) y size2
+>           drawFractal w x (y + size2) size2
+
 > myFractal :: IO ()
-> myFractal = error "Define me!"
+> myFractal
+>   = runGraphics (
+>     do w <- openWindow "My Fractal" (400, 400)
+>        drawFractal w 0 0 256
+>        k <- getKeyChar w
+>        closeWindow w 
+>     )
 
 Part 3: Recursion Etc.
 ----------------------
