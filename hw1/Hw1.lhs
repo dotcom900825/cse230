@@ -19,9 +19,9 @@ Part 0: All About You
 Tell us your name, email and student ID, by replacing the respective
 strings below
 
-> myName  = "Chenfu Xie"
-> myEmail = "c6xie@eng.ucsd.edu"
-> mySID   = "A53052342"
+> myName  = ""
+> myEmail = ""
+> mySID   = ""
 
 
 Preliminaries
@@ -157,7 +157,7 @@ screen:
 > sierpinskiCarpet = runGraphics (
 >                       do w <- openWindow "Sierpinski's Rec" (243, 243)
 >                          sierpinskiRec w 0 0 243
->                          k <- getKeyChar w
+>                          k <- getKey w
 >                          closeWindow w)
 
 Do the recursive rectangle:
@@ -209,7 +209,7 @@ Also, the organization of SOE has changed a bit, so that now you use
 >   = runGraphics (
 >     do w <- openWindow "My Fractal" (400, 400)
 >        drawFractal w 0 0 256
->        k <- getKeyChar w
+>        k <- getKey w
 >        closeWindow w 
 >     )
 
@@ -224,83 +224,97 @@ they are passed contain at least one element.)
 Write a *non-recursive* function to compute the length of a list
 
 > lengthNonRecursive :: [a] -> Int
-> lengthNonRecursive = error "Define me!"
+> lengthNonRecursive = foldr (\_ x -> 1 + x) 0
 
 `doubleEach [1,20,300,4000]` should return `[2,40,600,8000]`
 
 > doubleEach :: [Int] -> [Int]
-> doubleEach = error "Define me!"
+> doubleEach [] = []
+> doubleEach (x:xs) = x * 2 : doubleEach xs
 
 Now write a *non-recursive* version of the above.
 
 > doubleEachNonRecursive :: [Int] -> [Int]
-> doubleEachNonRecursive = error "Define me!"
+> doubleEachNonRecursive = map(\x -> x * 2)
 
 `pairAndOne [1,20,300]` should return `[(1,2), (20,21), (300,301)]`
 
 > pairAndOne :: [Int] -> [(Int, Int)]
-> pairAndOne = error "Define me!"
+> pairAndOne [] = []
+> pairAndOne (x:xs) = (x, x + 1) : pairAndOne xs 
 
 
 Now write a *non-recursive* version of the above.
 
 > pairAndOneNonRecursive :: [Int] -> [(Int, Int)]
-> pairAndOneNonRecursive = error "Define me!"
+> pairAndOneNonRecursive = map (\x -> (x, x + 1))
 
 `addEachPair [(1,2), (20,21), (300,301)]` should return `[3,41,601]`
 
+
 > addEachPair :: [(Int, Int)] -> [Int]
-> addEachPair = error "Define me!" 
+> addEachPair [] = []
+> addEachPair (x:xs) = (fst x) + (snd x) : addEachPair xs 
 
 Now write a *non-recursive* version of the above.
 
 > addEachPairNonRecursive :: [(Int, Int)] -> [Int]
-> addEachPairNonRecursive = error "Define me!" 
+> addEachPairNonRecursive = map (\x -> (fst x) + (snd x))
 
 `minList` should return the *smallest* value in the list. You may assume the
 input list is *non-empty*.
 
 > minList :: [Int] -> Int
-> minList = error "Define me!"
+> minList [x] = x
+> minList (x:xs) | x < minTail = x
+>                | otherwise   = minTail
+>                where minTail = minList xs
 
 Now write a *non-recursive* version of the above.
 
 > minListNonRecursive :: [Int] -> Int
-> minListNonRecursive = error "Define me!"
+> minListNonRecursive (x:xs)= foldl (min) x xs 
 
 `maxList` should return the *largest* value in the list. You may assume the
 input list is *non-empty*.
 
 > maxList :: [Int] -> Int
-> maxList = error "Define me!"
+> maxList [x] = x
+> maxList (x:xs) | x > maxTail = x 
+>                | otherwise   = maxTail 
+>                where maxTail = maxList xs
 
 Now write a *non-recursive* version of the above.
 
 > maxListNonRecursive :: [Int] -> Int
-> maxListNonRecursive = error "Define me!"
+> maxListNonRecursive (x:xs) = foldl (max) x xs 
 
 Now, a few functions for this `Tree` type.
 
 > data Tree a = Leaf a | Branch (Tree a) (Tree a)
 >               deriving (Show, Eq)
 
+> funcFold :: (a -> a -> a) -> (b -> a) -> Tree b -> a
+> funcFold func leafFunc (Leaf a) = leafFunc a
+> funcFold func leafFunc (Branch b1 b2) = func (funcFold func leafFunc b1) (funcFold func leafFunc b2)
+
 `fringe t` should return a list of all the values occurring as a `Leaf`.
 So: `fringe (Branch (Leaf 1) (Leaf 2))` should return `[1,2]`
 
 > fringe :: Tree a -> [a]
-> fringe = error "Define me!"
+> fringe = funcFold (++) (:[])
 
 `treeSize` should return the number of leaves in the tree. 
 So: `treeSize (Branch (Leaf 1) (Leaf 2))` should return `2`.
 
 > treeSize :: Tree a -> Int
-> treeSize = error "Define me!"
+> treeSize = funcFold (+) (\_ -> 1)
 
 `treeSize` should return the height of the tree.
 So: `height (Branch (Leaf 1) (Leaf 2))` should return `1`.
 
 > treeHeight :: Tree a -> Int
-> treeHeight = error "Define me!"
+> treeHeight = funcFold (\x y -> 1 + max x y) (\_ -> 0)
 
 Now, a tree where the values live at the nodes not the leaf.
 
@@ -312,19 +326,26 @@ So `takeTree 1 (IBranch 1 (IBranch 2 ILeaf ILeaf) (IBranch 3 ILeaf ILeaf)))`
 should return `IBranch 1 ILeaf ILeaf`.
 
 > takeTree :: Int -> InternalTree a -> InternalTree a
-> takeTree = error "Define me!"
+> takeTree 0 _ = ILeaf
+> takeTree _ ILeaf = ILeaf
+> takeTree n (IBranch size a1 a2) = IBranch size (takeTree (n-1) a1) (takeTree (n-1) a2)
+
 
 `takeTreeWhile p t` should cut of the tree at the nodes that don't satisfy `p`.
 So: `takeTreeWhile (< 3) (IBranch 1 (IBranch 2 ILeaf ILeaf) (IBranch 3 ILeaf ILeaf)))`
 should return `(IBranch 1 (IBranch 2 ILeaf ILeaf) ILeaf)`.
 
 > takeTreeWhile :: (a -> Bool) -> InternalTree a -> InternalTree a
-> takeTreeWhile = error "Define me!"
+> takeTreeWhile _ ILeaf = ILeaf
+> takeTreeWhile fn (IBranch n t1 t2)  
+>             | fn n = IBranch n (takeTreeWhile fn t1) (takeTreeWhile fn t2)
+>             | otherwise = ILeaf
  
 Write the function map in terms of foldr:
 
 > myMap :: (a -> b) -> [a] -> [b]
-> myMap = error "Define me!"
+> myMap fn [] = []
+> myMap fn xs = foldr (\arrayTail array -> (fn arrayTail):array) [] xs
 
 Part 4: Transforming XML Documents
 ----------------------------------
