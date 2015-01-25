@@ -85,13 +85,12 @@ The following are the definitions of shapes:
 2. Define a function
 
 > sides :: Shape -> Int
-> sides (Rectangle s1 s2) = 4
-> sides (Ellipse r1 r2) = 42
-> sides (RtTriangle s1 s2) = 3
-> sides (Polygon ps) = 
->                     if length(ps) <= 2 
->                     then 0
->                     else length(ps)
+> sides (Rectangle s1 s2)   = 4
+> sides (Ellipse r1 r2)     = 42
+> sides (RtTriangle s1 s2)  = 3
+> sides (Polygon pts)       =
+>   | (length xs) <= 2  = 0
+>   | otherwise         = length xs
 
   which returns the number of sides a given shape has.
   For the purposes of this exercise, an ellipse has 42 sides,
@@ -100,9 +99,11 @@ The following are the definitions of shapes:
 3. Define a function
 
 > bigger :: Shape -> Float -> Shape
-> bigger (Rectangle s1 s2) e = Rectangle (s1  * e) (s2 * e)
-> bigger (RtTriangle s1 s2) e = RtTriangle (s1  * e) (s2 * e)
-> bigger (Ellipse r1 r2) e = Ellipse (r1 * e) (r2 * e)
+> bigger (Rectangle s1 s2) e = Rectangle (s1 * (sqrt e)) (s2 * (sqrt e))
+> bigger (Ellipse r1 r2) e = Ellipse (r1 * (sqrt e)) (r2 * (sqrt e))
+> bigger (RtTriangle s1 s2) e = RtTriangle (s1 * (sqrt e)) (s2 * (sqrt e))
+> bigger (Polygon xs) e = Polygon (map (\(a, b) -> (a * (sqrt e), b * (sqrt e))) xs)
+
 
   that takes a shape `s` and expansion factor `e` and returns
   a shape which is the same as (i.e., similar to in the geometric sense)
