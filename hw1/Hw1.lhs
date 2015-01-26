@@ -260,12 +260,12 @@ Now write a *non-recursive* version of the above.
 
 > addEachPair :: [(Int, Int)] -> [Int]
 > addEachPair [] = []
-> addEachPair (x:xs) = (fst x) + (snd x) : addEachPair xs 
+> addEachPair ((x1,x2):xs) = x1 + x2 : addEachPair xs 
 
 Now write a *non-recursive* version of the above.
 
 > addEachPairNonRecursive :: [(Int, Int)] -> [Int]
-> addEachPairNonRecursive = map (\x -> (fst x) + (snd x))
+> addEachPairNonRecursive = map (\(x1,x2) -> x1 + x2)
 
 `minList` should return the *smallest* value in the list. You may assume the
 input list is *non-empty*.
