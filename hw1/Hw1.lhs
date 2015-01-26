@@ -194,22 +194,27 @@ Also, the organization of SOE has changed a bit, so that now you use
    own design.  Be creative!  The only constraint is that it shows some
    pattern of recursive self-similarity.
 
-> drawTri :: Window -> Int -> Int -> Int -> IO()
-> drawTri w x y size = drawInWindow w (withColor White (polygon [(x, y), (x + size, y), (x, y + size)]))
+> --Draw a diamond shape filled with white color
+> drawDiamond :: Window -> Int -> Int -> Int -> IO ()
+> drawDiamond w x y size = 
+>     drawInWindow w (withColor White (polygon [(x, y), (x+size, y+size), (x, y+(2*size)), (x-size, y+size)]))
 
+> --Recursive split diamond into five small diamonds
 > drawFractal w x y size = 
->   if size <= 2
->   then drawTri w x y size
->   else let size2 = size `div` 2
+>   if size <= 3
+>   then do drawDiamond w x y size
+>   else let size2 = size `div` 3
 >     in do drawFractal w x y size2
->           drawFractal w (x + size2) y size2
->           drawFractal w x (y + size2) size2
+>           drawFractal w x (y+(2*size2)) size2
+>           drawFractal w x (y+(4*size2)) size2
+>           drawFractal w (x+(2*size2)) (y+(2*size2)) size2
+>           drawFractal w (x-(2*size2)) (y+(2*size2)) size2
 
 > myFractal :: IO ()
 > myFractal
 >   = runGraphics (
->     do w <- openWindow "My Fractal" (400, 400)
->        drawFractal w 0 0 256
+>     do w <- openWindow "My Fractal" (500, 500)
+>        drawFractal w 250 0 243
 >        k <- getKey w
 >        closeWindow w 
 >     )
