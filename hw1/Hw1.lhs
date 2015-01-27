@@ -456,22 +456,16 @@ in the textual data in the original XML).
 > playFormatXML _ (PCDATA s) = [PCDATA s]
 > playFormatXML n (Element name xs)
 >   | name == "TITLE"     = titleFormatXML n xs
->   | name == "PERSONAE"  = listFormatXML 2 "Dramatis Personae" xs
+>   | name == "PERSONAE"  = (Element "h2" [PCDATA "Dramatis Personae"]) : concatMap (playFormatXML 1) xs
+>   | name == "PERSONA"   = xs ++ [PCDATA "<br/>"] 
 >   | name == "ACT"       = concatMap (playFormatXML 2) xs
 >   | name == "SCENE"     = concatMap (playFormatXML 3) xs
 >   | name == "SPEECH"    = concatMap (playFormatXML 4) xs
 >   | name == "SPEAKER"   = [Element "b" xs] ++ [PCDATA "<br/>"]
->   | name == "LINE"      = head (xs) : [PCDATA "<br/>"] 
+>   | name == "LINE"      = xs ++ [PCDATA "<br/>"] 
 >   | otherwise           = []
 >
 >
-> -- Generic Function to convert XML list into HTML format
-> -- Parameters: Int         -> size of the header that's >= 1
-> --             String      -> title text
-> --             [SimpleXML] -> A list of Element to convert to strings
-> -- Return:     [SimpleXML] -> Converted HTML string objects with title object in a list
-> listFormatXML  :: Int -> String -> [SimpleXML]-> [SimpleXML]
-> listFormatXML n title xs = (Element ("h"++show n) [PCDATA title]) : (concatMap (\(Element name x) -> head (x) : [PCDATA "<br/>"]) xs)
 >
 >
 > -- Generic Function to convert title into HTML format
