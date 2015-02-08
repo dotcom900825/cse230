@@ -12,6 +12,7 @@ title: Homework #2, Due Friday 2/24/14
 > import Text.Parsec.Combinator hiding (between)
 > import Text.Parsec.Char
 > import Text.Parsec.String
+> import Prelude
 
 This week's homework is presented as a literate Haskell file,
 just like the lectures. This means that every line beginning with
@@ -86,6 +87,48 @@ Define the following functions by filling in the "error" portion:
    Try using `foldl'` (from [Data.List](http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-List.html#3))
    instead; can you explain why it's faster?
 
+   Haskell compilers commonly choose lazy evaluation as reduction order to reduce multiple redexes.
+   The foldl function is defined in Haskell Prelude as
+
+   foldl :: (a -> b -> a) -> a -> [b] -> a
+   foldl f a [] = a
+   foldl f a (x:xs) = foldl f (f a x) xs
+
+   if we ran foldl (+) 0 [1..100] will become
+   
+   foldl (+) 0 [1..100]
+=>  foldl (+) 0 (1:[2..100])
+=>  foldl (+) (0 + 1) [2..100]
+=>  foldl (+) (0 + 1) (2:[3..100])
+=>  foldl (+) ((0 + 1) + 2) [3..100]
+=>  foldl (+) ((0 + 1) + 2) (3:[4..100])
+=>  foldl (+) (((0 + 1) + 2) + 3) [4..100]
+=>  …
+
+Thus the accumulating parameter grows without bounds, but the foldl is implemented as
+foldl' :: (a -> b -> a) -> a -> [b] -> a
+foldl' f a []     = a
+foldl' f a (x:xs) = let a' = f a x
+                    in seq a' (foldl' f a' xs)
+
+ and now the evaluation proceeds as
+ foldl' (+) 0 [1..100]
+=>  foldl' (+) 0 (1:[2..100])
+=>  let a' = 0 + 1 in seq a' (foldl' (+) a' [2..100])
+=>  let a' = 1 in seq a' (foldl' (+) a' [2..100])
+=>  foldl' (+) 1 [2..100]
+=>  foldl' (+) 1 (2:[3..100])
+=>  let a' = 1 + 2 in seq a' (foldl' (+) a' [3..100])
+=>  let a' = 3 in seq a' (foldl' (+) a' [3..100])
+=>  foldl' (+) 3 [3..100]
+=>  …
+
+The expression stays at a constant size due to the usage of seq, which makes sure that the 
+accumulating parameter is evaluated before the next element in the list is processed.
+
+[Reference: https://hackhands.com/lazy-evaluation-works-haskell, https://wiki.haskell.org/Fold]
+
+
 Part 2: Binary Search Trees
 ===========================
 
@@ -97,20 +140,24 @@ Recall the following type of binary search trees:
 
 Define a `delete` function for BSTs of this type:
 
+Helper function deleteR, when the root of the tree or subtree is deleted,
+then we put the right subtree of the root to be the right child of the right most node in
+the left subtree.
+
+> deleteR :: BST k v -> BST k v -> BST k v
+> deleteR Emp Emp = Emp
+> deleteR Emp r = r
+> deleteR l Emp = l
+> deleteR (Bind k v t1 t2) r = (Bind k v t1 (deleteR t2 r))
+
+
 > delete :: (Ord k) => k -> BST k v -> BST k v
 > delete k Emp = Emp
 > delete k (Bind k' v t1 t2) 
 >           | k == k' = deleteR t1 t2
 >           | k < k'  = Bind k' v (Hw2.delete k t1) t2
->           | k > k'  = Bind k' v t2 (Hw2.delete k t2)
-
-Helper function deleteR, when the root of the tree or subtree is deleted,
-then we put the right subtree of the root to be the right child of the right most node in the left subtree.
-
-> deleteR :: BST k v -> BST k v -> BST k v
-> deleteR Emp r = r
-> deleteR l Emp = l
-> deleteR (Bind k v t1 t2) r = (Bind k v t1 (deleteR t2 r))   
+>           | k > k'  = Bind k' v t1 (Hw2.delete k t2)
+   
 
 Part 3: An Interpreter for WHILE 
 ================================
