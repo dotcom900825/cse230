@@ -273,18 +273,24 @@ evaluating the `Statement`.
 Thus, to "update" the value of the store with the new store `s'` 
 do `put s`.
 
-> evalS w@(While e s)    = error "TBD" 
+> evalS w@(While e s)    = do
+>							v <- evalE e
+>							case v of
+>								IntVal _	  -> evalS Skip
+>								BoolVal False -> evalS Skip
+>								BoolVal True  -> do evalS s; evalS w
 > evalS Skip             = return ()
-> evalS (Sequence s1 s2) = do
->                        evalS s1
->                        evalS s2
-> evalS (Assign x e )    = error "TBD"
+> evalS (Sequence s1 s2) = do evalS s1; evalS s2
+> evalS (Assign x e )    = do
+>							s <- get
+>							v <- evalE e
+>							put $ insert x v s
 > evalS (If e s1 s2)     = do
->                        val <- evalE (e)
->                        case val of 
->                            IntVal _ -> return ()
->                            BoolVal True -> evalS (s1)
->                            BoolVal False -> evalS (s2)
+>							v <- evalE e
+>							case v of
+>								IntVal _	  -> evalS Skip
+>								BoolVal True  -> evalS s
+>								BoolVal False -> evalS Skip
 
 In the `If` case, if `e` evaluates to a non-boolean value, just skip both
 the branches. (We will convert it into a type error in the next homework.)
