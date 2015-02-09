@@ -237,9 +237,24 @@ change, when we add exceptions and such.
 **Hint:** The value `get` is of type `State Store Store`. Thus, to extract 
 the value of the "current store" in a variable `s` use `s <- get`.
 
-> evalE (Var x)      = error "TBD"
-> evalE (Val v)      = error "TBD" 
-> evalE (Op o e1 e2) = error "TBD"
+> evalE (Var x)      =  do
+>						s <- get 
+>						return (findWithDefault (IntVal 0) x s)
+
+> evalE (Val v)      = return v 
+
+> evalE (Op o e1 e2) = do
+>			(IntVal v1) <- evalE(e1)
+>			(IntVal v2) <- evalE(e2)
+>			case o of 
+>					  Plus     -> return ( IntVal (v1 + v2))
+>					  Minus	   -> return ( IntVal (v1 - v2))
+>					  Times    -> return ( IntVal (v1 * v2))
+> 					  Divide   -> return ( IntVal (v1 `div` v2))
+>					  Gt       -> return ( BoolVal (v1 >  v2))
+>					  Ge       -> return ( BoolVal (v1 >= v2))
+>					  Lt       -> return ( BoolVal (v1 <  v2))
+>					  Le 	   -> return ( BoolVal (v1 <= v2))
 
 
 Statement Evaluator
