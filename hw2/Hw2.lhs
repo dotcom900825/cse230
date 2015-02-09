@@ -247,14 +247,14 @@ the value of the "current store" in a variable `s` use `s <- get`.
 >			(IntVal v1) <- evalE(e1)
 >			(IntVal v2) <- evalE(e2)
 >			case o of 
->					  Plus     -> return ( IntVal (v1 + v2))
+>					  Plus      -> return ( IntVal (v1 + v2))
 >					  Minus	   -> return ( IntVal (v1 - v2))
->					  Times    -> return ( IntVal (v1 * v2))
-> 					  Divide   -> return ( IntVal (v1 `div` v2))
->					  Gt       -> return ( BoolVal (v1 >  v2))
->					  Ge       -> return ( BoolVal (v1 >= v2))
->					  Lt       -> return ( BoolVal (v1 <  v2))
->					  Le 	   -> return ( BoolVal (v1 <= v2))
+>					  Times     -> return ( IntVal (v1 * v2))
+> 					  Divide    -> return ( IntVal (v1 `div` v2))
+>					  Gt        -> return ( BoolVal (v1 >  v2))
+>					  Ge        -> return ( BoolVal (v1 >= v2))
+>					  Lt        -> return ( BoolVal (v1 <  v2))
+>					  Le 	      -> return ( BoolVal (v1 <= v2))
 
 
 Statement Evaluator
