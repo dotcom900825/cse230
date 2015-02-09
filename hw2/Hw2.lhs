@@ -297,7 +297,8 @@ the branches. (We will convert it into a type error in the next homework.)
 Finally, write a function 
 
 > execS :: Statement -> Store -> Store
-> execS s= execState (evalS (s))
+> execS s= execState $ evalS s
+>>>>>>> Stashed changes
 
 such that `execS stmt store` returns the new `Store` that results
 from evaluating the command `stmt` from the world `store`. 
