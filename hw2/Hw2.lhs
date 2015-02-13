@@ -396,25 +396,26 @@ variable is one-or-more uppercase letters.
 Use the above to write a parser for `Expression` values
 
 > exprP :: Parser Expression
-> exprP = varExprP <|> valExprP <|> expExprP
+> exprP = choice[try expExprP, try parenExprP, try varExprP, try valExprP]
 >		where
-> 			varExprP = do 
+> 			expExprP = do
+>				x <- choice[try varExprP, try valExprP, try parenExprP]
+>				skipMany space
+>				o <- opP
+>				skipMany space
+>				y <- exprP
+>				return $ Op o x y
+> 			parenExprP = do
+>				string "("
+>				x <- exprP
+>				string ")"
+>				return $ x
+> 			varExprP = do
 >				v <- varP
 >				return $ Var v
 > 			valExprP = do
 >				v <- valueP
 >				return $ Val v
-> 			expExprP = do
->				string "("
->				skipMany space
->				x <- exprP
->				skipMany space
->				o <- opP
->				skipMany space
->				y <- exprP
->				skipMany space
->				string ")"
->				return $ Op o x y
 
 Parsing Statements
 ------------------
