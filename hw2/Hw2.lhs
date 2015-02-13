@@ -297,8 +297,7 @@ the branches. (We will convert it into a type error in the next homework.)
 Finally, write a function 
 
 > execS :: Statement -> Store -> Store
-> execS s= execState $ evalS s
->>>>>>> Stashed changes
+> execS s = execState (evalS s)
 
 such that `execS stmt store` returns the new `Store` that results
 from evaluating the command `stmt` from the world `store`. 
@@ -355,25 +354,33 @@ First, we will write parsers for the `Value` type
 To do so, fill in the implementations of
 
 > intP :: Parser Value
-> intP = error "TBD" 
+> intP = do
+>			x <- many1 digit
+>			return $ IntVal $ read x
 
 Next, define a parser that will accept a 
 particular string `s` as a given value `x`
 
 > constP :: String -> a -> Parser a
-> constP s x = error "TBD"
+> constP s x = do return x
 
 and use the above to define a parser for boolean values 
 where `"true"` and `"false"` should be parsed appropriately.
 
 > boolP :: Parser Value
-> boolP = error "TBD"
+> boolP = constP "true" (BoolVal True) <|> constP "false" (BoolVal False)
 
 Continue to use the above to parse the binary operators
 
 > opP :: Parser Bop 
-> opP = error "TBD"
- 
+> opP = 	constP "+" 	Plus
+>		<|> constP "-" 	Minus
+>		<|> constP "*" 	Times
+>		<|> constP "/" 	Divide
+>		<|> constP ">" 	Gt
+>		<|> constP "<" 	Lt
+>		<|> constP ">=" Ge
+>		<|> constP "<=" Le 
 
 Parsing Expressions 
 -------------------
