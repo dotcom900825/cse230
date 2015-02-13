@@ -362,7 +362,9 @@ Next, define a parser that will accept a
 particular string `s` as a given value `x`
 
 > constP :: String -> a -> Parser a
-> constP s x = do return x
+> constP s x = do
+>				string s
+>				return x
 
 and use the above to define a parser for boolean values 
 where `"true"` and `"false"` should be parsed appropriately.
@@ -394,7 +396,25 @@ variable is one-or-more uppercase letters.
 Use the above to write a parser for `Expression` values
 
 > exprP :: Parser Expression
-> exprP = error "TBD"
+> exprP = varExprP <|> valExprP <|> expExprP
+>		where
+> 			varExprP = do 
+>				v <- varP
+>				return $ Var v
+> 			valExprP = do
+>				v <- valueP
+>				return $ Val v
+> 			expExprP = do
+>				string "("
+>				skipMany space
+>				x <- exprP
+>				skipMany space
+>				o <- opP
+>				skipMany space
+>				y <- exprP
+>				skipMany space
+>				string ")"
+>				return $ Op o x y
 
 Parsing Statements
 ------------------
@@ -402,7 +422,43 @@ Parsing Statements
 Next, use the expression parsers to build a statement parser
 
 > statementP :: Parser Statement
-> statementP = error "TBD" 
+> statementP = assignP <|> ifP <|> whileP <|> sequenceP <|> skipP
+> 		where
+> 				assignP = do
+>					v <- varP
+>					skipMany space
+>					string ":="
+>					skipMany space
+>					e <- exprP
+>					return $ Assign v e
+>				ifP = do
+>					string "if"
+>					skipMany space
+>					e  <- exprP
+>					skipMany space
+>					s1 <- statementP
+>					skipMany space
+>					string "else"
+>					skipMany space
+>					s2 <- statementP
+>					return $ If e s1 s2
+>				whileP = do
+>					string "while"
+>					skipMany space
+>					e <- exprP
+>					skipMany space
+>					s <- statementP
+>					return $ While e s
+> 				sequenceP = do
+>					s1 <- statementP
+>					skipMany space
+>					string ";"
+>					skipMany space
+>					s2 <- statementP
+>					return $ Sequence s1 s2
+> 				skipP = do
+>					string "skip"
+>					return Skip
 
 When you are done, we can put the parser and evaluator together 
 in the end-to-end interpreter function
