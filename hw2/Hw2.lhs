@@ -362,19 +362,20 @@ and use the above to define a parser for boolean values
 where `"true"` and `"false"` should be parsed appropriately.
 
 > boolP :: Parser Value
-> boolP = constP "true" (BoolVal True) <|> constP "false" (BoolVal False)
+> boolP = choice[try (constP "true" (BoolVal True)),
+>               try (constP "false" (BoolVal False))]
 
 Continue to use the above to parse the binary operators
 
 > opP :: Parser Bop 
-> opP =   constP ">="   Ge
->     <|> constP "<="   Le
->     <|> constP "+"    Plus
->     <|> constP "-"    Minus
->     <|> constP "*"    Times
->     <|> constP "/"    Divide
->     <|> constP ">"    Gt
->     <|> constP "<"    Lt
+> opP =   choice[try (constP ">="   Ge),
+>            try (constP "<="   Le),
+>               try (constP "+"    Plus),
+>               try (constP "-"    Minus),
+>               try (constP "*"    Times),
+>               try (constP "/"    Divide),
+>               try (constP ">"    Gt),
+>               try (constP "<"    Lt)]
 
 Parsing Expressions 
 -------------------
