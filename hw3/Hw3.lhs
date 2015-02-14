@@ -108,12 +108,17 @@ and functions that generate an arbitrary BST operations
 
 Write an insertion function 
 
+Helper method to add the new element into a sorted array
+
 > add_to_list :: (Ord k) => k -> v -> [(k, v)] -> [(k, v)]
 > add_to_list k v [] = [(k, v)]
 > add_to_list k v (x:xs)
 >   | k == (fst x) = (k, v) : xs
 >   | k <  (fst x) = (k, v) : x : xs
 >   | k >  (fst x) = x : add_to_list k v xs
+
+Helper method to build a balanced binary search tree based upon the algorithm from 
+www.geeksforgeeks.org/sorted-array-to-balanced-bst
 
 > list_to_tree :: [(k, v)] -> BST k v
 > list_to_tree [] = Emp
@@ -122,6 +127,10 @@ Write an insertion function
 >                 (k, v) = (!!) xs mid
 >                 l = list_to_tree $ take mid xs
 >                 r = list_to_tree $ drop (mid + 1) xs
+
+We first convert the binary search tree into an array, then insert the new element into the array,
+and we guarantee that the result array is sorted, then we convert this sorted array into the balanced binary 
+search tree
 
 > bstInsert :: (Ord k) => k -> v -> BST k v -> BST k v
 > bstInsert k v Emp = Bind k v Emp Emp
@@ -152,6 +161,10 @@ Write a deletion function for BSTs of this type:
 >           | k < (fst x) = x : xs
 >           | k > (fst x) = x : delete_from_list k xs
 
+
+We first convert the given binary search tree into an array, then remove the element from the array, and we 
+guarantee that the resulted array is sorted as well. Then we reconstruct the new balanced binary search tree
+based on the array.
 
 > bstDelete :: (Ord k) => k -> BST k v -> BST k v
 > bstDelete _ Emp = Emp
