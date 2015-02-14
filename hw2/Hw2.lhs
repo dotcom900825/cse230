@@ -64,24 +64,23 @@ Define the following functions by filling in the "error" portion:
 1. Describe `foldl` and give an implementation:
 
 > myFoldl :: (a -> b -> a) -> a -> [b] -> a
-> myFoldl f b []     = b
+> myFoldl f b [] = b
 > myFoldl f b (x:xs) = myFoldl f (f b x) xs
 
 2. Using the standard `foldl` (not `myFoldl`), define the list reverse function:
 
 > myReverse :: [a] -> [a]
-> myReverse = Prelude.foldl (\acc x -> x : acc) []
+> myReverse = Prelude.foldl (flip (:)) []
 
 3. Define `foldr` in terms of `foldl`:
 
 > myFoldr :: (a -> b -> b) -> b -> [a] -> b
-> myFoldr f b xs = Prelude.foldl (\g b x -> g (f b x)) id xs b
+> myFoldr f b xs = Prelude.foldl (flip f) b (myReverse xs)
 
 4. Define `foldl` in terms of the standard `foldr` (not `myFoldr`):
 
 > myFoldl2 :: (a -> b -> a) -> a -> [b] -> a
-> myFoldl2 f b xs = Prelude.foldr step id xs b
-> 				  where step x g a = g (f a x)
+> myFoldl2 f b xs = Prelude.foldr (flip f) b (myReverse xs)
 
 5. Try applying `foldl` to a gigantic list. Why is it so slow?
    Try using `foldl'` (from [Data.List](http://www.haskell.org/ghc/docs/latest/html/libraries/base/Data-List.html#3))
@@ -375,14 +374,14 @@ where `"true"` and `"false"` should be parsed appropriately.
 Continue to use the above to parse the binary operators
 
 > opP :: Parser Bop 
-> opP = 	constP "+" 	Plus
->		<|> constP "-" 	Minus
->		<|> constP "*" 	Times
->		<|> constP "/" 	Divide
->		<|> constP ">" 	Gt
->		<|> constP "<" 	Lt
->		<|> constP ">=" Ge
->		<|> constP "<=" Le 
+> opP =   constP ">=" Ge
+>     <|> constP "<=" Le
+>     <|> constP "+"    Plus
+>     <|> constP "-"    Minus
+>     <|> constP "*"    Times
+>     <|> constP "/"    Divide
+>     <|> constP ">"    Gt
+>     <|> constP "<"    Lt
 
 Parsing Expressions 
 -------------------
@@ -423,43 +422,51 @@ Parsing Statements
 Next, use the expression parsers to build a statement parser
 
 > statementP :: Parser Statement
-> statementP = assignP <|> ifP <|> whileP <|> sequenceP <|> skipP
+> statementP = choice [try sequenceP, try ifP, try whileP, try assignP, try skipP]
 > 		where
-> 				assignP = do
->					v <- varP
->					skipMany space
->					string ":="
->					skipMany space
->					e <- exprP
->					return $ Assign v e
->				ifP = do
->					string "if"
->					skipMany space
->					e  <- exprP
->					skipMany space
->					s1 <- statementP
->					skipMany space
->					string "else"
->					skipMany space
->					s2 <- statementP
->					return $ If e s1 s2
->				whileP = do
->					string "while"
->					skipMany space
->					e <- exprP
->					skipMany space
->					s <- statementP
->					return $ While e s
-> 				sequenceP = do
->					s1 <- statementP
->					skipMany space
->					string ";"
->					skipMany space
->					s2 <- statementP
->					return $ Sequence s1 s2
-> 				skipP = do
->					string "skip"
->					return Skip
+>			sequenceP = do
+>				s1 <- choice [try ifP, try whileP, try assignP, try skipP]
+>				skipMany space
+>				string ";"
+>				skipMany space
+>				s2 <- statementP
+>				return $ Sequence s1 s2
+>			ifP = do
+>				string "if"
+>				skipMany space
+>				e  <- exprP
+>				skipMany space
+>				string "then"
+>				skipMany space
+>				s1 <- statementP
+>				skipMany space
+>				string "else"
+>				skipMany space
+>				s2 <- statementP
+>				skipMany space
+>				string "endif"
+>				return $ If e s1 s2
+>			whileP = do
+>				string "while"
+>				skipMany space
+>				e <- exprP
+>				skipMany space
+>				string "do"
+>				skipMany space
+>				s <- statementP
+>				skipMany space
+>				string "endwhile"
+>				return $ While e s
+> 			assignP = do
+>				v <- varP
+>				skipMany space
+>				string ":="
+>				skipMany space
+>				e <- exprP
+>				return $ Assign v e
+> 			skipP = do
+>				string "skip"
+>				return Skip
 
 When you are done, we can put the parser and evaluator together 
 in the end-to-end interpreter function
