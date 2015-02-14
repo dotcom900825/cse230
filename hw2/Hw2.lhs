@@ -12,7 +12,6 @@ title: Homework #2, Due Friday 2/24/14
 > import Text.Parsec.Combinator hiding (between)
 > import Text.Parsec.Char
 > import Text.Parsec.String
-> import Prelude
 
 This week's homework is presented as a literate Haskell file,
 just like the lectures. This means that every line beginning with
@@ -51,9 +50,9 @@ Problem 0: All About You
 Tell us your name, email and student ID, by replacing the respective
 strings below
 
-> myName  = "Chenfu Xie"
-> myEmail = "c6xie@eng.ucsd.edu"
-> mySID   = "A53052342"
+> myName  = ""
+> myEmail = ""
+> mySID   = ""
 
 
 Problem 1: All About `foldl`
@@ -127,7 +126,6 @@ accumulating parameter is evaluated before the next element in the list is proce
 
 [Reference: https://hackhands.com/lazy-evaluation-works-haskell, https://wiki.haskell.org/Fold]
 
-
 Part 2: Binary Search Trees
 ===========================
 
@@ -139,24 +137,21 @@ Recall the following type of binary search trees:
 
 Define a `delete` function for BSTs of this type:
 
-Helper function deleteR, when the root of the tree or subtree is deleted,
-then we put the right subtree of the root to be the right child of the right most node in
-the left subtree.
-
-> deleteR :: BST k v -> BST k v -> BST k v
-> deleteR Emp Emp = Emp
-> deleteR Emp r = r
-> deleteR l Emp = l
-> deleteR (Bind k v t1 t2) r = (Bind k v t1 (deleteR t2 r))
-
-
 > delete :: (Ord k) => k -> BST k v -> BST k v
 > delete k Emp = Emp
 > delete k (Bind k' v t1 t2) 
->           | k == k' = deleteR t1 t2
->           | k < k'  = Bind k' v (Hw2.delete k t1) t2
->           | k > k'  = Bind k' v t1 (Hw2.delete k t2)
-   
+>    | k == k' = deleteR t1 t2
+>    | k < k'  = Bind k' v (Hw2.delete k t1) t2
+>    | k > k'  = Bind k' v t1 (Hw2.delete k t2)
+
+Helper function deleteR, when the root of the tree or subtree is deleted,
+then we put the right subtree of the root to be the right child of the right most node in the left subtree.
+
+> deleteR :: BST k v -> BST k v -> BST k v
+> deleteR Emp Emp           = Emp
+> deleteR Emp r             = r
+> deleteR l Emp             = l
+> deleteR (Bind k v t1 t2) r = (Bind k v t1 (deleteR t2 r))   
 
 Part 3: An Interpreter for WHILE 
 ================================
@@ -236,24 +231,22 @@ change, when we add exceptions and such.
 **Hint:** The value `get` is of type `State Store Store`. Thus, to extract 
 the value of the "current store" in a variable `s` use `s <- get`.
 
-> evalE (Var x)      =  do
->						s <- get 
->						return (findWithDefault (IntVal 0) x s)
-
-> evalE (Val v)      = return v 
-
+> evalE (Var x)      = do
+>                       s <- get
+>                       return (findWithDefault (IntVal 0) x s)
+> evalE (Val v)      = return v
 > evalE (Op o e1 e2) = do
->			(IntVal v1) <- evalE(e1)
->			(IntVal v2) <- evalE(e2)
->			case o of 
->					  Plus      -> return ( IntVal (v1 + v2))
->					  Minus	   -> return ( IntVal (v1 - v2))
->					  Times     -> return ( IntVal (v1 * v2))
-> 					  Divide    -> return ( IntVal (v1 `div` v2))
->					  Gt        -> return ( BoolVal (v1 >  v2))
->					  Ge        -> return ( BoolVal (v1 >= v2))
->					  Lt        -> return ( BoolVal (v1 <  v2))
->					  Le 	      -> return ( BoolVal (v1 <= v2))
+>                       (IntVal v1) <- evalE(e1)
+>                       (IntVal v2) <- evalE(e2)
+>                       case o of 
+>                          Plus      -> return ( IntVal  (v1   +   v2))
+>                          Minus     -> return ( IntVal  (v1   -   v2))
+>                          Times     -> return ( IntVal  (v1   *   v2))
+>                          Divide    -> return ( IntVal  (v1 `div` v2))
+>                          Gt        -> return ( BoolVal (v1   >   v2))
+>                          Ge        -> return ( BoolVal (v1   >=  v2))
+>                          Lt        -> return ( BoolVal (v1   <   v2))
+>                          Le        -> return ( BoolVal (v1   <=  v2))
 
 
 Statement Evaluator
@@ -273,30 +266,30 @@ Thus, to "update" the value of the store with the new store `s'`
 do `put s`.
 
 > evalS w@(While e s)    = do
->							v <- evalE e
->							case v of
->								IntVal _	  -> evalS Skip
->								BoolVal False -> evalS Skip
->								BoolVal True  -> do evalS s; evalS w
+>                          v <- evalE e
+>                          case v of
+>                             IntVal _      -> evalS Skip
+>                             BoolVal False -> evalS Skip
+>                             BoolVal True  -> do evalS s; evalS w
 > evalS Skip             = return ()
 > evalS (Sequence s1 s2) = do evalS s1; evalS s2
 > evalS (Assign x e )    = do
->							s <- get
->							v <- evalE e
->							put $ insert x v s
+>                          s <- get
+>                          v <- evalE e
+>                          put $ insert x v s
 > evalS (If e s1 s2)     = do
->							v <- evalE e
->							case v of
->								IntVal _	  -> evalS Skip
->								BoolVal True  -> evalS s1
->								BoolVal False -> evalS s2
+>                          v <- evalE e
+>                          case v of
+>                             IntVal _       -> evalS Skip
+>                             BoolVal True   -> evalS s1
+>                             BoolVal False  -> evalS s2
 
 In the `If` case, if `e` evaluates to a non-boolean value, just skip both
 the branches. (We will convert it into a type error in the next homework.)
 Finally, write a function 
 
 > execS :: Statement -> Store -> Store
-> execS s = execState (evalS s)
+> execS s = execState $ evalS s
 
 such that `execS stmt store` returns the new `Store` that results
 from evaluating the command `stmt` from the world `store`. 
@@ -354,16 +347,16 @@ To do so, fill in the implementations of
 
 > intP :: Parser Value
 > intP = do
->			x <- many1 digit
->			return $ IntVal $ read x
+>        x <- many1 digit
+>        return $ IntVal $ read x
 
 Next, define a parser that will accept a 
 particular string `s` as a given value `x`
 
 > constP :: String -> a -> Parser a
 > constP s x = do
->				string s
->				return x
+>              string s
+>              return x
 
 and use the above to define a parser for boolean values 
 where `"true"` and `"false"` should be parsed appropriately.
@@ -396,25 +389,25 @@ Use the above to write a parser for `Expression` values
 
 > exprP :: Parser Expression
 > exprP = choice[try expExprP, try parenExprP, try varExprP, try valExprP]
->		where
-> 			expExprP = do
->				x <- choice[try varExprP, try valExprP, try parenExprP]
->				skipMany space
->				o <- opP
->				skipMany space
->				y <- exprP
->				return $ Op o x y
-> 			parenExprP = do
->				string "("
->				x <- exprP
->				string ")"
->				return $ x
-> 			varExprP = do
->				v <- varP
->				return $ Var v
-> 			valExprP = do
->				v <- valueP
->				return $ Val v
+>     where
+>        expExprP = do
+>           x <- choice[try varExprP, try valExprP, try parenExprP]
+>           skipMany space
+>           o <- opP
+>           skipMany space
+>           y <- exprP
+>           return $ Op o x y
+>        parenExprP = do
+>           string "("
+>           x <- exprP
+>           string ")"
+>           return $ x
+>        varExprP = do
+>           v <- varP
+>           return $ Var v
+>        valExprP = do
+>           v <- valueP
+>           return $ Val v
 
 Parsing Statements
 ------------------
@@ -423,50 +416,50 @@ Next, use the expression parsers to build a statement parser
 
 > statementP :: Parser Statement
 > statementP = choice [try sequenceP, try ifP, try whileP, try assignP, try skipP]
-> 		where
->			sequenceP = do
->				s1 <- choice [try ifP, try whileP, try assignP, try skipP]
->				skipMany space
->				string ";"
->				skipMany space
->				s2 <- statementP
->				return $ Sequence s1 s2
->			ifP = do
->				string "if"
->				skipMany space
->				e  <- exprP
->				skipMany space
->				string "then"
->				skipMany space
->				s1 <- statementP
->				skipMany space
->				string "else"
->				skipMany space
->				s2 <- statementP
->				skipMany space
->				string "endif"
->				return $ If e s1 s2
->			whileP = do
->				string "while"
->				skipMany space
->				e <- exprP
->				skipMany space
->				string "do"
->				skipMany space
->				s <- statementP
->				skipMany space
->				string "endwhile"
->				return $ While e s
-> 			assignP = do
->				v <- varP
->				skipMany space
->				string ":="
->				skipMany space
->				e <- exprP
->				return $ Assign v e
-> 			skipP = do
->				string "skip"
->				return Skip
+>     where
+>        sequenceP = do
+>           s1 <- choice [try ifP, try whileP, try assignP, try skipP]
+>           skipMany space
+>           string ";"
+>           skipMany space
+>           s2 <- statementP
+>           return $ Sequence s1 s2
+>        ifP = do
+>           string "if"
+>           skipMany space
+>           e  <- exprP
+>           skipMany space
+>           string "then"
+>           skipMany space
+>           s1 <- statementP
+>           skipMany space
+>           string "else"
+>           skipMany space
+>           s2 <- statementP
+>           skipMany space
+>           string "endif"
+>           return $ If e s1 s2
+>        whileP = do
+>           string "while"
+>           skipMany space
+>           e <- exprP
+>           skipMany space
+>           string "do"
+>           skipMany space
+>           s <- statementP
+>           skipMany space
+>           string "endwhile"
+>           return $ While e s
+>        assignP = do
+>           v <- varP
+>           skipMany space
+>           string ":="
+>           skipMany space
+>           e <- exprP
+>           return $ Assign v e
+>        skipP = do
+>           string "skip"
+>           return Skip
 
 When you are done, we can put the parser and evaluator together 
 in the end-to-end interpreter function
