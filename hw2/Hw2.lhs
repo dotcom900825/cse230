@@ -367,8 +367,8 @@ where `"true"` and `"false"` should be parsed appropriately.
 Continue to use the above to parse the binary operators
 
 > opP :: Parser Bop 
-> opP =   constP ">=" Ge
->     <|> constP "<=" Le
+> opP =   constP ">="   Ge
+>     <|> constP "<="   Le
 >     <|> constP "+"    Plus
 >     <|> constP "-"    Minus
 >     <|> constP "*"    Times
