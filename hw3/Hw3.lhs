@@ -403,7 +403,7 @@ We can use the half-adder to build a full-adder
 >         (sum, c2)   = halfadd (cin, sum1)
 >         cout        = xor2 (c1,c2) 
 > 
-> test1a = probe [("cin",cin), ("x",x), ("y",y), ("  sum",sum), ("cout",cout)]
+> test1a = probe [("cin",cin), ("x",x), ("y",y), ("sum",sum), ("cout",cout)]
 >   where cin        = high
 >         x          = low
 >         y          = high
@@ -418,7 +418,7 @@ and then an n-bit adder
 >         (sums, cout) = bitAdder (c,xs)
 > 
 > test1 = probe [("cin",cin), ("in1",in1), ("in2",in2), ("in3",in3), ("in4",in4),
->                ("  s1",s1), ("s2",s2), ("s3",s3), ("s4",s4), ("c",c)]
+>                ("s1",s1), ("s2",s2), ("s3",s3), ("s4",s4), ("c",c)]
 >   where
 >     cin = high
 >     in1 = high
@@ -474,14 +474,56 @@ outputs an N-bit binary number. Subtracting one from zero should
 yield zero.
 
 > prop_bitSubtractor_Correct ::  Signal -> [Bool] -> Bool
-> prop_bitSubtractor_Correct = error "TODO"
+> prop_bitSubtractor_Correct sub xs =
+>       case binary xs of 
+>         0   -> binary (sampleN out) == 0 
+>         ys  -> binary (sampleN out) ==  ys - binary (sample1 sub) 
+>   where (out, bout) = bitSubtractor (sub, map lift0 xs)
 
 2. Using the `bitAdder` circuit as a model, deﬁne a `bitSubtractor` 
 circuit that implements this functionality and use QC to check that 
 your behaves correctly.
 
+> complement :: [Signal] -> [Signal]
+> complement  []        = []
+> complement  (x:xs)    = xor2(x,high) : (complement xs)
+
+  complement xs = map xor2(high) xs
+
+> twos'complement :: [Signal] -> [Signal]
+> twos'complement []    = []
+> twos'complement xs    = fst (bitAdder (high, complements))
+>       where complements = complement xs  
+
+> subtractor :: (Signal, [Signal]) -> [Signal]
+> subtractor (bin, []) = []
+> subtractor (bin, xs) = take (length xs') $ adder (xs', complements)
+>   where subs = take (length xs + 1) (repeat low)
+>         (bins, _) = bitAdder (bin, subs) 
+>         complements = twos'complement bins
+>         xs'  = xs ++ [low]
+  
+
 > bitSubtractor :: (Signal, [Signal]) -> ([Signal], Signal)
-> bitSubtractor = error "TODO"
+> bitSubtractor (bin, []) = ([], bin)
+> bitSubtractor (bin, xs) = 
+>   case binary (sample1 y) of
+>       0 -> (ys, y)
+>       1 -> (xs, y)
+>   where ys' = subtractor (bin, xs)
+>         y   = last ys' 
+>         ys  = take (length xs) ys'
+
+> test3 = probe [ ("bin",bin), ("in1",in1), ("in2",in2), ("in3",in3),
+>                 ("in4",in4), ("  s1",s1), ("s2",s2), ("s3",s3),
+>                 ("s4",s4), ("b",b) ]
+>       where
+>               bin = high
+>               in1 = low
+>               in2 = low
+>               in3 = low
+>               in4 = high
+>               ([s1,s2,s3,s4], b) = bitSubtractor (bin, [in1,in2,in3,in4])
 
 
 Problem: Multiplication
