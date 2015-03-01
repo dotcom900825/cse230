@@ -450,7 +450,7 @@ Finally, we can use the bit-adder to build an adder that adds two N-bit numbers
 >      adderAux (cin, [], ys)     = adderAux (cin, [low], ys)
 >      adderAux (cin, xs, [])     = adderAux (cin, xs, [low])
 > 
-> test2 = probe [ ("x1", x1), ("x2",x2), ("x3",x3), ("x4",x4),
+> test2 = probe [ ("x1", x1), ("x2", x2), ("x3",x3), ("x4",x4),
 >                 (" y1",y1), ("y2",y2), ("y3",y3), ("y4",y4), 
 >                 (" s1",s1), ("s2",s2), ("s3",s3), ("s4",s4), (" c",c) ]
 >   where xs@[x1,x2,x3,x4] = [high,high,low,low]
@@ -492,7 +492,10 @@ for a `multiplier` circuit that takes two binary numbers of arbitrary
 width as input and outputs their product.
 
 > prop_Multiplier_Correct ::  [Bool] -> [Bool] -> Bool
-> prop_Multiplier_Correct = error "TODO"
+> prop_Multiplier_Correct l1 l2 = 
+>     binary (sampleN product) == binary l1 * binary l2
+>     where product = multiplier (map lift0 l1, map lift0 l2)
+
 
 4. Deﬁne a `multiplier` circuit and check that it satisﬁes your 
 speciﬁcation. (Looking at how adder is deﬁned will help with this, 
@@ -500,8 +503,23 @@ but you’ll need a little more wiring. To get an idea of how the
 recursive structure should work, think about how to multiply two 
 binary numbers on paper.)
 
+> bitMultiplier :: (Bool, [Signal]) -> [Signal]
+> bitMultiplier (False, xs) = take (length xs) (repeat low)
+> bitMultiplier (True, xs) = xs
+
+We implement multiplier by using adder as a helper function.
+First, we do the bitMultiplier with leftmost bit of one signal list(l1) and another signal list(l2). This 
+temporary result is called result.
+Then we move l2 forward by one bit, which means to append low to the head of l2.
+Also, we do a bitMultiplier again with the left part of l1 and new l2 to get rest as another temporary reuslt.
+The final result is equal to add rest and result together.
+
 > multiplier :: ([Signal], [Signal]) -> [Signal]
-> multiplier = error "TODO"
+> multiplier (_, []) = []
+> multiplier ([], _) = []
+> multiplier (xs, y:ys) = adder (result, rest)
+>                         where  result = bitMultiplier ((sample1 y), xs)
+>                                rest = multiplier ((low:xs), ys)
 
 [1]: http://www.cis.upenn.edu/~bcpierce/courses/552-2008/resources/circuits.hs
 
