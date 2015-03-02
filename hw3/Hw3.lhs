@@ -122,11 +122,9 @@ www.geeksforgeeks.org/sorted-array-to-balanced-bst
 
 > list_to_tree :: [(k, v)] -> BST k v
 > list_to_tree [] = Emp
-> list_to_tree xs = Bind k v l r
+> list_to_tree xs = Bind k v (list_to_tree $ take mid xs) (list_to_tree $ drop (mid + 1) xs)
 >           where mid = (length xs) `div` 2
 >                 (k, v) = (!!) xs mid
->                 l = list_to_tree $ take mid xs
->                 r = list_to_tree $ drop (mid + 1) xs
 
 We first convert the binary search tree into an array, then insert the new element into the array,
 and we guarantee that the result array is sorted, then we convert this sorted array into the balanced binary 
@@ -484,6 +482,12 @@ yield zero.
 circuit that implements this functionality and use QC to check that 
 your behaves correctly.
 
+In order to use bitAdder to build bitSubtractor, we need to calculate the two's complement
+of a input, since 3 - 2 essentially equals to 3 + (-2).
+
+To calculate a number's two's complement, we need to get number's complement first, basically just
+reverse each digit's signal, and then plus a high signal to it.
+
 > complement :: [Signal] -> [Signal]
 > complement  []        = []
 > complement  (x:xs)    = xor2(x,high) : (complement xs)
@@ -497,22 +501,20 @@ your behaves correctly.
 
 > subtractor :: (Signal, [Signal]) -> [Signal]
 > subtractor (bin, []) = []
-> subtractor (bin, xs) = take (length xs') $ adder (xs', complements)
->   where subs = take (length xs + 1) (repeat low)
->         (bins, _) = bitAdder (bin, subs) 
->         complements = twos'complement bins
->         xs'  = xs ++ [low]
+> subtractor (bin, xs) = take ((length xs) + 1) $ adder (xs ++ [low], complements)
+>   where base = take (length xs + 1) (repeat low)
+>         (binaries, _) = bitAdder (bin, base) 
+>         complements = twos'complement binaries
   
 
 > bitSubtractor :: (Signal, [Signal]) -> ([Signal], Signal)
 > bitSubtractor (bin, []) = ([], bin)
 > bitSubtractor (bin, xs) = 
 >   case binary (sample1 y) of
->       0 -> (ys, y)
+>       0 -> (take (length xs) ys', y)
 >       1 -> (xs, y)
 >   where ys' = subtractor (bin, xs)
 >         y   = last ys' 
->         ys  = take (length xs) ys'
 
 > test3 = probe [ ("bin",bin), ("in1",in1), ("in2",in2), ("in3",in3),
 >                 ("in4",in4), ("  s1",s1), ("s2",s2), ("s3",s3),
